@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<nugget name="Z_BTC_UI5_UPLOAD">
+ <CLAS CLSNAME="Z_BTC_UI5_UPLOAD_WEBSERVICE" VERSION="1" LANGU="D" DESCRIPT="UI5-Upload-Webservice" CATEGORY="00" EXPOSURE="2" STATE="1" RELEASE="0" CLSFINAL="X" CLSCCINCL="X" FIXPT="X" UNICODE="X" CLSBCCAT="00" WITH_UNIT_TESTS="X" DURATION_TYPE="0 " RISK_LEVEL="0 ">
+  <implementing CLSNAME="Z_BTC_UI5_UPLOAD_WEBSERVICE" REFCLSNAME="IF_HTTP_EXTENSION" VERSION="1" EXPOSURE="2" STATE="1" RELTYPE="1" EDITORDER="1 "/>
+  <localImplementation>*&quot;* use this source file for the definition and implementation of
+*&quot;* local helper classes, interface definitions and type
+*&quot;* declarations</localImplementation>
+  <localTypes>*&quot;* use this source file for any type of declarations (class
+*&quot;* definitions, interfaces or type declarations) you need for
+*&quot;* components in the private section</localTypes>
+  <localMacros>*&quot;* use this source file for any macro definitions you need
+*&quot;* in the implementation part of the class</localMacros>
+  <localTestClasses>*&quot;* use this source file for your ABAP unit test classes</localTestClasses>
+  <attribute CLSNAME="Z_BTC_UI5_UPLOAD_WEBSERVICE" CMPNAME="URL_PARAMETERS" VERSION="1" LANGU="D" EXPOSURE="0" STATE="1" EDITORDER="2 " ATTDECLTYP="0" ATTEXPVIRT="0" TYPTYPE="1" TYPE="TIHTTPNVP" SRCROW1="0 " SRCCOLUMN1="0 " SRCROW2="0 " SRCCOLUMN2="0 " TYPESRC_LENG="0 "/>
+  <attribute CLSNAME="Z_BTC_UI5_UPLOAD_WEBSERVICE" CMPNAME="ZIP_CACHE_TTL_S" VERSION="1" LANGU="D" EXPOSURE="0" STATE="1" EDITORDER="1 " ATTDECLTYP="2" ATTVALUE="180" ATTEXPVIRT="0" TYPTYPE="1" TYPE="I" SRCROW1="0 " SRCCOLUMN1="0 " SRCROW2="0 " SRCCOLUMN2="0 " TYPESRC_LENG="0 "/>
+  <interfaceMethod CLSNAME="Z_BTC_UI5_UPLOAD_WEBSERVICE" CPDNAME="IF_HTTP_EXTENSION~HANDLE_REQUEST">
+   <source>METHOD if_http_extension~handle_request.
+    if server-&gt;request-&gt;get_method( ) = &apos;HEAD&apos;.
+       server-&gt;response-&gt;set_status( code = 200 reason = &apos;OK&apos; ).
+       return.
+    endif.
+    if server-&gt;request-&gt;get_method( ) &lt;&gt; &apos;POST&apos;.
+       server-&gt;response-&gt;set_status( code = 500 reason = &apos;Only POST supported.&apos; ).
+      return.
+    endif.
+    server-&gt;request-&gt;get_form_fields( CHANGING fields = url_parameters ).
+    data(zip_url) = upload_zip_to_http_cache( server-&gt;request-&gt;get_data( ) ).
+
+    DATA success TYPE char1.
+    DATA log_messages TYPE string_table.
+    try.
+    CALL FUNCTION &apos;/UI5/UI5_REPOSITORY_LOAD_HTTP&apos;
+      EXPORTING
+        iv_url                     = zip_url
+        iv_sapui5_application_name = get_url_parameter( `sapui5applicationname` )
+        iv_sapui5_application_desc = get_url_parameter( `sapui5applicationdescription` )
+        iv_package                 = conv devclass( get_url_parameter( `sapui5applicationpackage` ) )
+        iv_workbench_request       = conv trkorr( get_url_parameter( `workbenchrequest` ) )
+        iv_external_code_page      = get_url_parameter( `externalcodepage` )
+        iv_accept_unix_style_eol   = switch #( get_url_parameter( `acceptunixstyleeol` ) when `true` then abap_true when `false` then abap_false else abap_undefined )
+        iv_delta_mode              = switch #( get_url_parameter( `deltamode` ) when `true` then abap_true when `false` then abap_false else abap_undefined )
+        iv_test_mode               = switch #( get_url_parameter( `testmode` ) when `true` then abap_true else abap_false )
+      IMPORTING
+        ev_success                 = success
+        ev_log_messages            = log_messages.
+    catch cx_root into data(e).
+        success = &apos;E&apos;.
+        while e is bound.
+            e-&gt;get_source_position( importing program_name = data(program) include_name = data(include) source_line = data(line) ).
+            insert |{ cl_abap_classdescr=&gt;get_class_name( e ) }: { e-&gt;get_text( ) } in { include } { program } line { line }| into table log_messages.
+            e = e-&gt;previous.
+        endwhile.
+    endtry.
+    case success.
+      when &apos;E&apos;.
+        server-&gt;response-&gt;set_status( code = 500 reason = &apos;Installation of UI5 application failed.&apos; ).
+      when &apos;S&apos;.
+        server-&gt;response-&gt;set_status( code = 200 reason = &apos;Finished&apos; ).
+      when others.
+        server-&gt;response-&gt;set_status( code = 206 reason = &apos;Finished with warnings&apos; ).
+    endcase.
+
+    CONCATENATE LINES OF log_messages INTO data(log_string) SEPARATED BY cl_abap_char_utilities=&gt;newline.
+    server-&gt;response-&gt;set_cdata( data = log_string ).
+  ENDMETHOD.</source>
+  </interfaceMethod>
+  <method CLSNAME="Z_BTC_UI5_UPLOAD_WEBSERVICE" CMPNAME="GET_URL_PARAMETER" VERSION="1" LANGU="D" EXPOSURE="0" STATE="1" EDITORDER="2 " DISPID="0 " MTDTYPE="0" MTDDECLTYP="0" BCMTDCAT="00" BCMTDSYN="0">
+   <parameter CLSNAME="Z_BTC_UI5_UPLOAD_WEBSERVICE" CMPNAME="GET_URL_PARAMETER" SCONAME="I_PARAMETER_NAME" VERSION="1" LANGU="D" CMPTYPE="1" MTDTYPE="0" EDITORDER="1 " DISPID="0 " PARDECLTYP="0" PARPASSTYP="1" TYPTYPE="1" TYPE="STRING"/>
+   <parameter CLSNAME="Z_BTC_UI5_UPLOAD_WEBSERVICE" CMPNAME="GET_URL_PARAMETER" SCONAME="R_RESULT" VERSION="1" LANGU="D" CMPTYPE="1" MTDTYPE="0" EDITORDER="2 " DISPID="0 " PARDECLTYP="3" PARPASSTYP="0" TYPTYPE="1" TYPE="STRING"/>
+   <source>METHOD get_url_parameter.
+    IF line_exists( url_parameters[ name = i_parameter_name ] ).
+      r_result = url_parameters[ name = i_parameter_name ]-value.
+    ENDIF.
+  ENDMETHOD.</source>
+  </method>
+  <method CLSNAME="Z_BTC_UI5_UPLOAD_WEBSERVICE" CMPNAME="UPLOAD_ZIP_TO_HTTP_CACHE" VERSION="1" LANGU="D" EXPOSURE="0" STATE="1" EDITORDER="1 " DISPID="0 " MTDTYPE="0" MTDDECLTYP="0" BCMTDCAT="00" BCMTDSYN="0">
+   <parameter CLSNAME="Z_BTC_UI5_UPLOAD_WEBSERVICE" CMPNAME="UPLOAD_ZIP_TO_HTTP_CACHE" SCONAME="I_ZIP_DATA" VERSION="1" LANGU="D" CMPTYPE="1" MTDTYPE="0" EDITORDER="1 " DISPID="0 " PARDECLTYP="0" PARPASSTYP="1" TYPTYPE="1" TYPE="XSTRING"/>
+   <parameter CLSNAME="Z_BTC_UI5_UPLOAD_WEBSERVICE" CMPNAME="UPLOAD_ZIP_TO_HTTP_CACHE" SCONAME="R_URL" VERSION="1" LANGU="D" CMPTYPE="1" MTDTYPE="0" EDITORDER="2 " DISPID="0 " PARDECLTYP="3" PARPASSTYP="0" TYPTYPE="1" TYPE="STRING"/>
+   <source>METHOD upload_zip_to_http_cache.
+    DATA(cached_response) = NEW cl_http_response( add_c_msg = 1 ).
+    cached_response-&gt;set_content_type( `application/zip` ).
+    cached_response-&gt;set_data( i_zip_data ).
+    cached_response-&gt;if_http_response~set_status( code = 200 reason = &apos;OK&apos; ).
+    cached_response-&gt;if_http_response~server_cache_expire_rel( zip_cache_ttl_s ).
+    cl_wd_utilities=&gt;construct_wd_url( EXPORTING application_name = `UI5Upload` IMPORTING out_absolute_url = r_url ).
+
+    r_url = r_url &amp;&amp; `/` &amp;&amp; cl_system_uuid=&gt;create_uuid_c32_static( ).
+    cl_http_server=&gt;server_cache_upload( response = cached_response url = r_url ).
+  ENDMETHOD.</source>
+  </method>
+ </CLAS>
+ <DEVC DEVCLASS="Z_BTC_UI5_UPLOAD" CTEXT="Webservice für den BTC UI5Uploader" LANGUAGE="D" MASTERLANG="D" KORRFLAG="X" PDEVCLASS="ZDUM" DLVUNIT="HOME" NAMESPACE="/0CUST/" PARENTCL="Z_BTC" CREATED_BY="BEKLEFER" CREATED_ON="20150512" CHANGED_BY="BEKLEFER" CHANGED_ON="20150518" PROJECT_GUID="00000000000000000000000000000000"/>
+ <SICF ICF_NAME="UI5UPLOAD" ICFPARGUID="EEPI2GLFNOLHN7IW9R54I61RZ" ICFNODGUID="4VGQWAQ2R71G8A25J8CVH9U1S" ICFCHILDNO="0 " ICFALIASNO="0 " ICF_MANDT="100" ICF_OPTION="0 " ICF_TIME="000000" ICF_CUSER="BEKLEFER" ICF_CDATE="20150512" ICF_MUSER="BEKLEFER" ICF_MDATE="20150515" ICF_AUTHRC="0" HTTPCDE500="2" HTTPCDE401="2" ICFBITMAP="00000000" FALLTHRU="X" HTTPCDELPAG="2" ICFGUILNK="N" ICF_CCLNT="100" ICF_MCLNT="100" HTTPCDENFPAG="2" ACCESSIBILITY="N" ORIG_NAME="ui5upload">
+  <icfdocu ICF_NAME="UI5UPLOAD" ICFPARGUID="EEPI2GLFNOLHN7IW9R54I61RZ" ICF_LANGU="D" ICF_DOCU="UI5 Application Upload Service"/>
+  <icfhandler ICF_NAME="UI5UPLOAD" ICFPARGUID="EEPI2GLFNOLHN7IW9R54I61RZ" ICFORDER="01" ICFTYP="A" ICFHANDLER="Z_BTC_UI5_UPLOAD_WEBSERVICE"/>
+ </SICF>
+</nugget>
