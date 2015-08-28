@@ -87,8 +87,14 @@ Import the class and the SICF-Node via
 You can just copy/paste the code of the class 
 [z_btc_ui5_upload_webservice.abap](https://github.com/kleferbe/ui5uploader/blob/master/z_btc_ui5_upload_webservice.abap) 
 to your SAP system and create the SICF-Node manually:
+
 1. Start transaction `SICF`.
 2. Go to node default_host/sap/bc and choose "New Sub-Element" in its context menu and confirm the next message.
+![SICF node tree](doc/SICF.png)
 3. Enter `ui5upload` for the "Name of Service Element to Be Created".
 4. In the service properties enter at least one Description.
 5. Go to tab "Handler List" and add `Z_BTC_UI5_UPLOAD_WEBSERVICE` to the list.
+![SICF service handlerlist](doc/SICF_service_properties.png) 
+
+:warning: If you create the SICF node with a path differing from `/sap/bc/ui5upload`, 
+you have to specify the whole path for the -s parameter. For example `-s http://dev:8001/my/custom/service`
