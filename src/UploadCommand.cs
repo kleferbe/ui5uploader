@@ -82,7 +82,13 @@ namespace BTC.UI5Uploader
                   return 5;
                }
                Console.Write("Save Password? [Y/N] ");
-               if (Console.ReadLine().Trim().Equals("Y", StringComparison.OrdinalIgnoreCase))
+               var answer = Console.ReadLine();
+               if (answer == null)
+               {
+                  Log.Instance.Write("Non interactive console. Aborting.");
+                  return 6;
+               }
+               if (answer.Trim().Equals("Y", StringComparison.OrdinalIgnoreCase))
                {
                   credentialStore.SetCredentials(credentials);
                   credentialStore.Save();
@@ -113,7 +119,7 @@ namespace BTC.UI5Uploader
                Log.Instance.Write("Non interactive console. Use -f to disable this prompt.");
                return 6;
             }
-            if (answer.Trim().Equals("Y", StringComparison.OrdinalIgnoreCase))
+            if (!answer.Trim().Equals("Y", StringComparison.OrdinalIgnoreCase))
             {
                Log.Instance.Write("User abort.");
                return 0;
