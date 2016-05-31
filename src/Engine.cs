@@ -200,7 +200,7 @@ namespace BTC.UI5Uploader
                using (var zipHelper = new ZipHelper(stream))
                {
                   zipHelper.Zip(".Ui5RepositoryUploadParameters", Encoding.UTF8.GetBytes(cleanedConfigFileContent));
-                  zipHelper.Zip(ProjectDir, new[] { ".Ui5Repository*", "WebContent" }, IgnoreMasks.ToArray());
+                  zipHelper.Zip(ProjectDir, new[] { "*" }, IgnoreMasks.ToArray());
                }
                stream.Close();
             }
