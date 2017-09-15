@@ -22,6 +22,10 @@ namespace BTC.UI5Uploader
       /// </summary>
       public string ProjectDir { get; set; }
       /// <summary>
+      /// Relative path to <see cref="ProjectDir"/> containing the app to package. This folder will become the root of the app.
+      /// </summary>
+      public string AppSubDir { get; set; }
+      /// <summary>
       /// Target name of the UI5 application in the ABAP repository.
       /// </summary>
       public string AppName { get; set; }
@@ -114,6 +118,7 @@ namespace BTC.UI5Uploader
             }
             else
             {
+               cleanedConfigFileContent = "";
                Log.Instance.Write("Warning: Configuration File \".Ui5RepositoryUploadParameters\" not found in project folder.");
             }
             var ignoreFile = Path.Combine(ProjectDir, ".Ui5RepositoryIgnore");
@@ -200,7 +205,7 @@ namespace BTC.UI5Uploader
                using (var zipHelper = new ZipHelper(stream))
                {
                   zipHelper.Zip(".Ui5RepositoryUploadParameters", Encoding.UTF8.GetBytes(cleanedConfigFileContent));
-                  zipHelper.Zip(ProjectDir, new[] { "*" }, IgnoreMasks.ToArray());
+                  zipHelper.Zip(ProjectDir, string.IsNullOrEmpty(AppSubDir)? new[]{ "*" } : new[] { ".Ui5Repository*", AppSubDir  }, IgnoreMasks.ToArray());
                }
                stream.Close();
             }
@@ -220,6 +225,36 @@ namespace BTC.UI5Uploader
                Log.Instance.Write("Upload failed!");
                throw new UploadFailedException();
             }
+         }
+      }
+      /// <summary>
+      /// Create a zip file containing the app for manual upload
+      /// </summary>
+      /// <param name="targetFileName">The Filename of the zip file to be created.</param>
+      public void Bundle(string targetFileName){
+         using (var stream = new FileStream(targetFileName, FileMode.Create, FileAccess.Write))
+         {
+            Bundle(stream);
+         }
+      }
+      /// <summary>
+      /// Create a zip containing the app for manual upload.
+      /// </summary>
+      /// <param name="stream">Stream to write the zip file data to.</param>
+      public void Bundle(Stream stream)
+      {
+         var configFile = new StringBuilder(cleanedConfigFileContent);
+         configFile.AppendLine();
+         configFile.AppendLine("SAPUI5ApplicationName=" + AppName);
+         configFile.AppendLine("SAPUI5ApplicationPackage=" + Package);
+         configFile.AppendLine("WorkbenchRequest=" + TransportRequest);
+         configFile.AppendLine("SAPUI5ApplicationDescription=" + AppDescription);
+         configFile.AppendLine("ExternalCodePage=" + ExternalCodepage);
+
+         using (var zipHelper = new ZipHelper(stream))
+         {
+            zipHelper.Zip(".Ui5RepositoryUploadParameters", Encoding.UTF8.GetBytes(configFile.ToString()));
+            zipHelper.Zip(ProjectDir, string.IsNullOrEmpty(AppSubDir) ? new[] { "*" } : new[] { ".Ui5Repository*", AppSubDir }, IgnoreMasks.ToArray());
          }
       }
 

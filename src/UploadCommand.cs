@@ -19,6 +19,7 @@ namespace BTC.UI5Uploader
          Mandant = 100;
          DeltaMode = true;
          Timeout = 30000;
+         AppSubFolder = "webapp";
          IsCommand("upload", oneLineDescription: "Upload UI5 Application to a SAP Backend");
          SkipsCommandSummaryBeforeRunning();
          HasRequiredOption("s|system=", "SAP System URL", o => System = UriHelper.CreateUri(o).ToString());
@@ -27,6 +28,7 @@ namespace BTC.UI5Uploader
 
          HasOption("p|password=", "Password. You can set and save the Password with the \"password\" command. If not given and not stored, you will be prompted for it.", o => Password = o);
          HasRequiredOption("src|ProjectFolder=", "Root folder of the UI5 Project to upload", o => ProjectFolder = o);
+         HasOption("app|appfolder=", "Path to the folder containing the application files. Relative to -src. Default webapp", o => AppSubFolder = o);
          HasOption("AppName=", "Target name of the UI5-Application. Extracted from .Ui5RepositoryUploadParameters if option not given.", o => AppName = o);
          HasOption("AppDescription=", "Description of the UI5-Application. Needed only when the Application is going to be created. Extracted from .Ui5RepositoryUploadParameters if option not given.", o => AppDescription = o);
          HasOption("Package=", "Target Package. Extracted from .Ui5RepositoryUploadParameters if option not given.", o => Package = o);
@@ -42,6 +44,7 @@ namespace BTC.UI5Uploader
       public string Username { get; set; }
       public string Password { get; set; }
       public string ProjectFolder { get; set; }
+      public string AppSubFolder { get; set; }
       public string AppName { get; set; }
       public string AppDescription { get; set; }
       public string Package { get; set; }
@@ -62,6 +65,7 @@ namespace BTC.UI5Uploader
          engine.DeltaMode = DeltaMode;
          engine.TestMode = TestMode;
          engine.Timeout = Timeout;
+         engine.AppSubDir = AppSubFolder;
          engine.IgnoreCertificateErrors = IgnoreCertificateErrors;
          Credentials credentials = null;
          if (!string.IsNullOrWhiteSpace(Username) && !string.IsNullOrWhiteSpace(Password))

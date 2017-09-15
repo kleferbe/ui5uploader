@@ -64,6 +64,7 @@
     <Compile Include="CredentialStore.cs" />
     <Compile Include="NotAuthorizedException.cs" />
     <Compile Include="SetCredentialsCommand.cs" />
+    <Compile Include="PackageCommand.cs" />
     <Compile Include="UploadCommand.cs" />
     <Compile Include="Credentials.cs" />
     <Compile Include="Crypto.cs" />
